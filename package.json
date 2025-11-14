@@ -1,0 +1,32 @@
+{
+  "name": "vzcode",
+  "version": "1.0.0",
+  "description": "AI-Powered Code Visualization with Gemini and Vizzu",
+  "main": "web/vzcode.js",
+  "scripts": {
+    "build": "make wasm",
+    "build:debug": "make debug",
+    "clean": "make clean",
+    "serve": "make serve",
+    "start": "npm run serve"
+  },
+  "keywords": [
+    "code-visualization",
+    "gemini",
+    "vizzu",
+    "webassembly",
+    "mermaid",
+    "diagram",
+    "animation",
+    "ai",
+    "code-analysis"
+  ],
+  "author": "VZCode Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/VZCode.git"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

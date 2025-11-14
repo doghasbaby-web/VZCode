@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VZCode - Code Visualization with Gemini AI</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/vizzu@latest/dist/vizzu.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 VZCode</h1>
+            <p class="subtitle">AI-Powered Code Visualization with Gemini & Vizzu</p>
+        </header>
+
+        <main>
+            <section class="config-section">
+                <div class="card">
+                    <h2>Configuration</h2>
+                    <div class="form-group">
+                        <label for="api-key">Gemini API Key:</label>
+                        <input type="password" id="api-key" placeholder="Enter your Gemini API key">
+                        <button id="save-key-btn" class="btn btn-primary">Save Key</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="language">Language:</label>
+                        <select id="language">
+                            <option value="cpp">C++</option>
+                            <option value="javascript">JavaScript</option>
+                            <option value="python">Python</option>
+                            <option value="java">Java</option>
+                            <option value="go">Go</option>
+                            <option value="rust">Rust</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="viz-type">Visualization Type:</label>
+                        <select id="viz-type">
+                            <option value="flowchart">Flowchart</option>
+                            <option value="class-diagram">Class Diagram</option>
+                            <option value="sequence">Sequence Diagram</option>
+                            <option value="component">Component Diagram</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="editor-section">
+                <div class="card">
+                    <h2>Code Input</h2>
+                    <textarea id="code-input" placeholder="Paste your code here...">// Example C++ code
+#include <iostream>
+#include <vector>
+
+class DataProcessor {
+private:
+    std::vector<int> data;
+
+public:
+    void addData(int value) {
+        data.push_back(value);
+    }
+
+    void process() {
+        for (auto& item : data) {
+            item *= 2;
+        }
+    }
+
+    void display() {
+        for (const auto& item : data) {
+            std::cout << item << " ";
+        }
+        std::cout << std::endl;
+    }
+};
+
+int main() {
+    DataProcessor processor;
+    processor.addData(1);
+    processor.addData(2);
+    processor.addData(3);
+    processor.process();
+    processor.display();
+    return 0;
+}</textarea>
+                    <div class="button-group">
+                        <button id="analyze-btn" class="btn btn-success">Analyze Code</button>
+                        <button id="clear-btn" class="btn btn-secondary">Clear</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="status-section">
+                <div id="status" class="status-message"></div>
+                <div id="progress" class="progress-bar" style="display: none;">
+                    <div class="progress-fill"></div>
+                </div>
+            </section>
+
+            <section class="results-section" style="display: none;">
+                <div class="card">
+                    <h2>Analysis Results</h2>
+                    <div id="description" class="description-box"></div>
+                </div>
+
+                <div class="card">
+                    <h2>Mermaid Diagram</h2>
+                    <pre id="mermaid-output" class="code-output"></pre>
+                    <button id="copy-mermaid-btn" class="btn btn-secondary">Copy Mermaid</button>
+                </div>
+
+                <div class="card">
+                    <h2>Interactive Visualization</h2>
+                    <div id="vizzu-container"></div>
+                    <div class="animation-controls">
+                        <button id="play-btn" class="btn btn-primary">▶ Play</button>
+                        <button id="pause-btn" class="btn btn-secondary">⏸ Pause</button>
+                        <button id="reset-btn" class="btn btn-secondary">⏹ Reset</button>
+                        <span id="step-info" class="step-info"></span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>VZCode v1.0.0 | Built with <a href="https://ai.google.dev/gemini-api" target="_blank">Gemini API</a> & <a href="https://github.com/vizzuhq/vizzu-lib" target="_blank">Vizzu</a></p>
+        </footer>
+    </div>
+
+    <script src="vzcode.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>

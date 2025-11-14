@@ -1,0 +1,55 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-wasm:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Emscripten
+      uses: mymindstorm/setup-emsdk@v12
+      with:
+        version: 'latest'
+
+    - name: Verify Emscripten
+      run: emcc --version
+
+    - name: Build WASM (Release)
+      run: make wasm
+
+    - name: Upload WASM artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: wasm-build
+        path: web/vzcode.*
+
+  build-native:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake build-essential
+
+    - name: Build with CMake
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DBUILD_WASM=OFF -DCMAKE_BUILD_TYPE=Release
+        make
+
+    - name: Upload native build
+      uses: actions/upload-artifact@v3
+      with:
+        name: native-build
+        path: build/bin/*
