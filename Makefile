@@ -29,6 +29,7 @@ SOURCES = $(SRC_DIR)/core/code_analyzer.cpp \
           $(SRC_DIR)/parser/vizzu_converter.cpp \
           $(SRC_DIR)/vizzu/animation_wrapper.cpp \
           $(SRC_DIR)/vizzu/vizzu_integration.cpp \
+          $(SRC_DIR)/vizzu/vizzu_kernel_wrapper.cpp \
           $(SRC_DIR)/utils/json_utils.cpp \
           $(SRC_DIR)/utils/http_client.cpp \
           $(SRC_DIR)/bindings/wasm_bindings.cpp

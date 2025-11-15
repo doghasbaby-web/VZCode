@@ -67,6 +67,13 @@ public:
      */
     static std::vector<std::string> supported_types();
 
+    // Public for testing - these are implementation details but heavily tested
+    std::string extract_node_id(const std::string& node_str);
+    std::string extract_node_label(const std::string& node_str);
+    std::string determine_node_type(const std::string& node_str);
+    std::string trim(const std::string& str);
+    bool starts_with(const std::string& str, const std::string& prefix);
+
 private:
     void parse_flowchart(const std::string& content, MermaidDiagram& diagram);
     void parse_class_diagram(const std::string& content, MermaidDiagram& diagram);
@@ -76,13 +83,7 @@ private:
     MermaidNode parse_node(const std::string& node_def);
     MermaidEdge parse_edge(const std::string& edge_def);
 
-    std::string extract_node_id(const std::string& node_str);
-    std::string extract_node_label(const std::string& node_str);
-    std::string determine_node_type(const std::string& node_str);
-
     std::vector<std::string> split_lines(const std::string& text);
-    std::string trim(const std::string& str);
-    bool starts_with(const std::string& str, const std::string& prefix);
 };
 
 } // namespace parser

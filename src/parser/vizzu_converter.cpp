@@ -30,6 +30,7 @@ VizzuSeries VizzuConverter::create_node_series(const std::vector<MermaidNode>& n
     VizzuSeries series;
     series.name = "Nodes";
     series.type = "dimension";
+    series.values.reserve(nodes.size());
 
     for (const auto& node : nodes) {
         series.values.push_back(node.label.empty() ? node.id : node.label);
@@ -42,6 +43,7 @@ VizzuSeries VizzuConverter::create_edge_series(const std::vector<MermaidEdge>& e
     VizzuSeries series;
     series.name = "Edges";
     series.type = "dimension";
+    series.values.reserve(edges.size());
 
     for (const auto& edge : edges) {
         std::string edge_label = edge.from + " → " + edge.to;
@@ -58,6 +60,7 @@ VizzuSeries VizzuConverter::create_weight_series(const std::vector<MermaidEdge>&
     VizzuSeries series;
     series.name = "Weight";
     series.type = "measure";
+    series.values.reserve(edges.size());
 
     for (const auto& edge : edges) {
         series.values.push_back(std::to_string(edge.weight));

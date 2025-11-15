@@ -152,7 +152,15 @@ if(BUILD_TESTS AND NOT BUILD_WASM)
 endif()
 
 # Install targets
-install(TARGETS vzcode
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-)
+if(BUILD_WASM)
+    install(TARGETS vzcode
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+    )
+else()
+    install(TARGETS vzcode_lib vzcode_demo
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+    )
+endif()

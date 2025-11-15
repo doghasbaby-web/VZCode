@@ -6,6 +6,11 @@
 #include <memory>
 #include "gemini_client.hpp"
 
+// Forward declare FRIEND_TEST for test access
+#ifndef FRIEND_TEST
+#define FRIEND_TEST(test_case_name, test_name)
+#endif
+
 namespace vzcode {
 namespace core {
 
@@ -44,26 +49,30 @@ public:
      * Analyze a single code file
      */
     AnalysisOutput analyze_file(const CodeFile& file,
-                                 const AnalysisOptions& options = AnalysisOptions());
+                                 const AnalysisOptions& options);
+    AnalysisOutput analyze_file(const CodeFile& file);
 
     /**
      * Analyze multiple code files and generate a comprehensive diagram
      */
     AnalysisOutput analyze_project(const std::vector<CodeFile>& files,
-                                   const AnalysisOptions& options = AnalysisOptions());
+                                   const AnalysisOptions& options);
+    AnalysisOutput analyze_project(const std::vector<CodeFile>& files);
 
     /**
      * Analyze code from string
      */
     AnalysisOutput analyze_code(const std::string& code,
-                               const AnalysisOptions& options = AnalysisOptions());
+                               const AnalysisOptions& options);
+    AnalysisOutput analyze_code(const std::string& code);
 
-private:
-    std::unique_ptr<GeminiClient> gemini_client_;
-
+    // Public for testing - these are implementation details but heavily tested
     std::string preprocess_code(const std::string& code, const AnalysisOptions& options);
     std::string merge_multiple_diagrams(const std::vector<std::string>& diagrams);
     std::vector<std::string> extract_insights(const std::string& description);
+
+private:
+    std::unique_ptr<GeminiClient> gemini_client_;
 };
 
 } // namespace core
