@@ -235,7 +235,7 @@ TEST_F(VizzuConverterTest, ToJsonFormat) {
     MermaidDiagram diagram = parser.parse(mermaid);
     VizzuData vizzu_data = converter.convert(diagram);
 
-    std::string json = converter.to_json(vizzu_data);
+    std::string json = converter.to_json(vizzu_data).stringify();
 
     EXPECT_FALSE(json.empty());
     EXPECT_NE(json.find("{"), std::string::npos);
@@ -248,7 +248,7 @@ TEST_F(VizzuConverterTest, JsonContainsSeries) {
 
     MermaidDiagram diagram = parser.parse(mermaid);
     VizzuData vizzu_data = converter.convert(diagram);
-    std::string json = converter.to_json(vizzu_data);
+    std::string json = converter.to_json(vizzu_data).stringify();
 
     EXPECT_NE(json.find("series"), std::string::npos);
 }

@@ -1,5 +1,6 @@
 #include "vizzu_integration.hpp"
 #include "vizzu_kernel_wrapper.hpp"
+#include <sstream>
 
 namespace vzcode {
 namespace vizzu {
@@ -42,19 +43,14 @@ bool VizzuIntegration::initialize_kernel() {
     }
 
     // Set initial configuration
-    if (!data_.series.empty()) {
+    if (!data_.series.empty() && data_.series.size() >= 2) {
         // Configure chart channels based on available data
-        if (data_.series.size() >= 2) {
-            kernel_wrapper_->set_config("config.channels.x",
-                "{\"set\": [\"" + data_.series[0].name + "\"]}");
-            kernel_wrapper_->set_config("config.channels.y",
-                "{\"set\": [\"" + data_.series[1].name + "\"]}");
-        }
-
-        if (data_.series.size() >= 2) {
-            kernel_wrapper_->set_config("config.channels.color",
-                "{\"set\": [\"" + data_.series[1].name + "\"]}");
-        }
+        kernel_wrapper_->set_config("config.channels.x",
+            "{\"set\": [\"" + data_.series[0].name + "\"]}");
+        kernel_wrapper_->set_config("config.channels.y",
+            "{\"set\": [\"" + data_.series[1].name + "\"]}");
+        kernel_wrapper_->set_config("config.channels.color",
+            "{\"set\": [\"" + data_.series[1].name + "\"]}");
     }
 
     // Set chart title

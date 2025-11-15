@@ -16,13 +16,14 @@ std::vector<std::string> MermaidParser::supported_types() {
 
 std::vector<std::string> MermaidParser::split_lines(const std::string& text) {
     std::vector<std::string> lines;
+    lines.reserve(50); // Reserve space for typical diagram size
     std::stringstream ss(text);
     std::string line;
 
     while (std::getline(ss, line)) {
         line = trim(line);
         if (!line.empty() && line[0] != '%') { // Skip comments
-            lines.push_back(line);
+            lines.push_back(std::move(line));
         }
     }
 

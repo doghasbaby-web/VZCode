@@ -10,20 +10,24 @@ CodeAnalyzer::CodeAnalyzer(const std::string& gemini_api_key)
 
 CodeAnalyzer::~CodeAnalyzer() {}
 
+// Static default options
+static const CodeAnalyzer::AnalysisOptions default_options;
+
 std::string CodeAnalyzer::preprocess_code(const std::string& code, const AnalysisOptions& options) {
     if (options.include_comments || code.empty()) {
         return code;
     }
 
     // Optimized comment removal with string literal awareness
-    std::stringstream ss;
-    ss.str().reserve(code.length()); // Pre-allocate memory
+    std::string result;
+    result.reserve(code.length()); // Pre-allocate memory
 
     bool in_multiline_comment = false;
     bool in_single_line_comment = false;
     bool in_string_literal = false;
     bool in_char_literal = false;
     char prev_char = '\0';
+    bool escaped = false;
 
     for (size_t i = 0; i < code.length(); ++i) {
         char current = code[i];
@@ -31,11 +35,18 @@ std::string CodeAnalyzer::preprocess_code(const std::string& code, const Analysi
 
         // Handle string and character literals to avoid false comment detection
         if (!in_multiline_comment && !in_single_line_comment) {
-            if (current == '"' && prev_char != '\\' && !in_char_literal) {
+            if (current == '"' && !escaped && !in_char_literal) {
                 in_string_literal = !in_string_literal;
-            } else if (current == '\'' && prev_char != '\\' && !in_string_literal) {
+            } else if (current == '\'' && !escaped && !in_string_literal) {
                 in_char_literal = !in_char_literal;
             }
+        }
+
+        // Update escaped state
+        if (current == '\\' && !escaped) {
+            escaped = true;
+        } else {
+            escaped = false;
         }
 
         // Skip comment detection inside string/char literals
@@ -69,22 +80,23 @@ std::string CodeAnalyzer::preprocess_code(const std::string& code, const Analysi
             if (in_single_line_comment) {
                 if (current == '\n') {
                     in_single_line_comment = false;
-                    ss << '\n';
+                    result += '\n';
                 }
                 prev_char = current;
                 continue;
             }
         }
 
-        ss << current;
+        result += current;
         prev_char = current;
     }
 
-    return ss.str();
+    return result;
 }
 
 std::vector<std::string> CodeAnalyzer::extract_insights(const std::string& description) {
     std::vector<std::string> insights;
+    insights.reserve(10); // Reserve space for expected number of insights
 
     // Split description into lines and extract key points
     std::stringstream ss(description);
@@ -98,7 +110,7 @@ std::vector<std::string> CodeAnalyzer::extract_insights(const std::string& descr
         if (!line.empty() && (line.find("shows") != std::string::npos ||
                              line.find("represents") != std::string::npos ||
                              line.find("illustrates") != std::string::npos)) {
-            insights.push_back(line);
+            insights.push_back(std::move(line));
         }
     }
 
@@ -159,6 +171,10 @@ CodeAnalyzer::AnalysisOutput CodeAnalyzer::analyze_code(const std::string& code,
     return output;
 }
 
+CodeAnalyzer::AnalysisOutput CodeAnalyzer::analyze_code(const std::string& code) {
+    return analyze_code(code, default_options);
+}
+
 CodeAnalyzer::AnalysisOutput CodeAnalyzer::analyze_file(const CodeFile& file,
                                                         const AnalysisOptions& options) {
     AnalysisOptions file_options = options;
@@ -167,6 +183,10 @@ CodeAnalyzer::AnalysisOutput CodeAnalyzer::analyze_file(const CodeFile& file,
     }
 
     return analyze_code(file.content, file_options);
+}
+
+CodeAnalyzer::AnalysisOutput CodeAnalyzer::analyze_file(const CodeFile& file) {
+    return analyze_file(file, default_options);
 }
 
 CodeAnalyzer::AnalysisOutput CodeAnalyzer::analyze_project(const std::vector<CodeFile>& files,
@@ -213,6 +233,10 @@ CodeAnalyzer::AnalysisOutput CodeAnalyzer::analyze_project(const std::vector<Cod
     output.description = desc_ss.str();
 
     return output;
+}
+
+CodeAnalyzer::AnalysisOutput CodeAnalyzer::analyze_project(const std::vector<CodeFile>& files) {
+    return analyze_project(files, default_options);
 }
 
 } // namespace core
