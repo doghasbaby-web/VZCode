@@ -1,16 +1,111 @@
 #include "vizzu_integration.hpp"
+#include "vizzu_kernel_wrapper.hpp"
 
 namespace vzcode {
 namespace vizzu {
 
-VizzuIntegration::VizzuIntegration() {}
+VizzuIntegration::VizzuIntegration()
+    : kernel_wrapper_(std::make_unique<VizzuKernelWrapper>()) {}
 
-VizzuIntegration::~VizzuIntegration() {}
+VizzuIntegration::~VizzuIntegration() {
+    if (kernel_wrapper_) {
+        kernel_wrapper_->cleanup();
+    }
+}
 
 bool VizzuIntegration::initialize(const parser::VizzuData& data, const ChartConfig& config) {
     data_ = data;
     config_ = config;
     animation_state_.total_steps = static_cast<int>(data.animation_steps.size());
+
+    // Try to initialize the kernel wrapper
+    if (kernel_wrapper_) {
+        initialize_kernel();
+    }
+
+    return true;
+}
+
+bool VizzuIntegration::initialize_kernel() {
+    if (!kernel_wrapper_) {
+        return false;
+    }
+
+    // Initialize Vizzu C++ kernel
+    if (!kernel_wrapper_->initialize()) {
+        return false;
+    }
+
+    // Load data into Vizzu kernel
+    if (!kernel_wrapper_->load_vizzu_data(data_)) {
+        return false;
+    }
+
+    // Set initial configuration
+    if (!data_.series.empty()) {
+        // Configure chart channels based on available data
+        if (data_.series.size() >= 2) {
+            kernel_wrapper_->set_config("config.channels.x",
+                "{\"set\": [\"" + data_.series[0].name + "\"]}");
+            kernel_wrapper_->set_config("config.channels.y",
+                "{\"set\": [\"" + data_.series[1].name + "\"]}");
+        }
+
+        if (data_.series.size() >= 2) {
+            kernel_wrapper_->set_config("config.channels.color",
+                "{\"set\": [\"" + data_.series[1].name + "\"]}");
+        }
+    }
+
+    // Set chart title
+    if (!config_.title.empty()) {
+        kernel_wrapper_->set_style("title", config_.title);
+    }
+
+    return true;
+}
+
+bool VizzuIntegration::render_with_kernel(double width, double height) {
+    if (!kernel_wrapper_ || !kernel_wrapper_->is_initialized()) {
+        return false;
+    }
+
+    return kernel_wrapper_->render(width, height);
+}
+
+bool VizzuIntegration::animate_with_kernel() {
+    if (!kernel_wrapper_ || !kernel_wrapper_->is_initialized()) {
+        return false;
+    }
+
+    // Execute animation steps
+    for (const auto& step : data_.animation_steps) {
+        // Set keyframe
+        kernel_wrapper_->begin_keyframe();
+
+        // Configure animation
+        if (!step.x.empty()) {
+            kernel_wrapper_->set_animation_config("config.channels.x",
+                "{\"set\": [\"" + step.x + "\"]}");
+        }
+        if (!step.y.empty()) {
+            kernel_wrapper_->set_animation_config("config.channels.y",
+                "{\"set\": [\"" + step.y + "\"]}");
+        }
+        if (!step.color.empty()) {
+            kernel_wrapper_->set_animation_config("config.channels.color",
+                "{\"set\": [\"" + step.color + "\"]}");
+        }
+
+        // Set animation duration
+        kernel_wrapper_->set_animation_duration(step.duration_ms);
+
+        // Trigger animation
+        if (!kernel_wrapper_->animate()) {
+            return false;
+        }
+    }
+
     return true;
 }
 

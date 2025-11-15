@@ -10,6 +10,9 @@
 namespace vzcode {
 namespace vizzu {
 
+// Forward declaration
+class VizzuKernelWrapper;
+
 /**
  * Chart configuration for Vizzu
  */
@@ -82,10 +85,33 @@ public:
      */
     std::string generate_js_code() const;
 
+    /**
+     * Get the kernel wrapper instance (for direct C++ access)
+     */
+    VizzuKernelWrapper* get_kernel_wrapper() const { return kernel_wrapper_.get(); }
+
+    /**
+     * Initialize using C++ kernel directly (alternative to JS generation)
+     */
+    bool initialize_kernel();
+
+    /**
+     * Render using C++ kernel
+     */
+    bool render_with_kernel(double width, double height);
+
+    /**
+     * Animate using C++ kernel
+     */
+    bool animate_with_kernel();
+
 private:
     parser::VizzuData data_;
     ChartConfig config_;
     AnimationState animation_state_;
+
+    // Vizzu C++ kernel wrapper - the actual integration!
+    std::unique_ptr<VizzuKernelWrapper> kernel_wrapper_;
 
     utils::JsonValue build_vizzu_config() const;
     utils::JsonValue build_data_json() const;
