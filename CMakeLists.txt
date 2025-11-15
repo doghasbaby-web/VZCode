@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Options
 option(BUILD_WASM "Build for WebAssembly" ON)
-option(BUILD_TESTS "Build tests" OFF)
+option(BUILD_TESTS "Build tests" ON)
 option(ENABLE_VIZZU_KERNEL "Enable Vizzu C++ kernel integration" ON)
 
 # Set output directories
@@ -110,6 +110,45 @@ else()
     add_library(vzcode_lib STATIC ${SOURCES})
     add_executable(vzcode_demo src/main.cpp)
     target_link_libraries(vzcode_demo vzcode_lib)
+endif()
+
+# Tests
+if(BUILD_TESTS AND NOT BUILD_WASM)
+    enable_testing()
+
+    # Download Google Test
+    include(FetchContent)
+    FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG v1.14.0
+    )
+    # For Windows: Prevent overriding the parent project's compiler/linker settings
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+
+    # Test executables
+    add_executable(test_json_utils tests/test_json_utils.cpp)
+    target_link_libraries(test_json_utils vzcode_lib gtest gtest_main)
+    add_test(NAME JsonUtilsTest COMMAND test_json_utils)
+
+    add_executable(test_mermaid_parser tests/test_mermaid_parser.cpp)
+    target_link_libraries(test_mermaid_parser vzcode_lib gtest gtest_main)
+    add_test(NAME MermaidParserTest COMMAND test_mermaid_parser)
+
+    add_executable(test_vizzu_converter tests/test_vizzu_converter.cpp)
+    target_link_libraries(test_vizzu_converter vzcode_lib gtest gtest_main)
+    add_test(NAME VizzuConverterTest COMMAND test_vizzu_converter)
+
+    add_executable(test_code_analyzer tests/test_code_analyzer.cpp)
+    target_link_libraries(test_code_analyzer vzcode_lib gtest gtest_main)
+    add_test(NAME CodeAnalyzerTest COMMAND test_code_analyzer)
+
+    add_executable(test_integration tests/test_integration.cpp)
+    target_link_libraries(test_integration vzcode_lib gtest gtest_main)
+    add_test(NAME IntegrationTest COMMAND test_integration)
+
+    message(STATUS "Tests enabled - use 'make test' or 'ctest' to run")
 endif()
 
 # Install targets

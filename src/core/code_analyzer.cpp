@@ -11,50 +11,76 @@ CodeAnalyzer::CodeAnalyzer(const std::string& gemini_api_key)
 CodeAnalyzer::~CodeAnalyzer() {}
 
 std::string CodeAnalyzer::preprocess_code(const std::string& code, const AnalysisOptions& options) {
-    std::string processed = code;
+    if (options.include_comments || code.empty()) {
+        return code;
+    }
 
-    if (!options.include_comments) {
-        // Simple comment removal (C++ style)
-        std::stringstream ss;
-        bool in_multiline_comment = false;
-        bool in_single_line_comment = false;
+    // Optimized comment removal with string literal awareness
+    std::stringstream ss;
+    ss.str().reserve(code.length()); // Pre-allocate memory
 
-        for (size_t i = 0; i < processed.length(); ++i) {
+    bool in_multiline_comment = false;
+    bool in_single_line_comment = false;
+    bool in_string_literal = false;
+    bool in_char_literal = false;
+    char prev_char = '\0';
+
+    for (size_t i = 0; i < code.length(); ++i) {
+        char current = code[i];
+        char next = (i + 1 < code.length()) ? code[i + 1] : '\0';
+
+        // Handle string and character literals to avoid false comment detection
+        if (!in_multiline_comment && !in_single_line_comment) {
+            if (current == '"' && prev_char != '\\' && !in_char_literal) {
+                in_string_literal = !in_string_literal;
+            } else if (current == '\'' && prev_char != '\\' && !in_string_literal) {
+                in_char_literal = !in_char_literal;
+            }
+        }
+
+        // Skip comment detection inside string/char literals
+        if (!in_string_literal && !in_char_literal) {
+            // Check for comment starts
             if (!in_multiline_comment && !in_single_line_comment) {
-                if (i + 1 < processed.length() && processed[i] == '/' && processed[i + 1] == '*') {
+                if (current == '/' && next == '*') {
                     in_multiline_comment = true;
                     ++i;
+                    prev_char = next;
                     continue;
-                } else if (i + 1 < processed.length() && processed[i] == '/' && processed[i + 1] == '/') {
+                } else if (current == '/' && next == '/') {
                     in_single_line_comment = true;
                     ++i;
+                    prev_char = next;
                     continue;
                 }
             }
 
+            // Handle multiline comment end
             if (in_multiline_comment) {
-                if (i + 1 < processed.length() && processed[i] == '*' && processed[i + 1] == '/') {
+                if (current == '*' && next == '/') {
                     in_multiline_comment = false;
                     ++i;
+                    prev_char = next;
                 }
                 continue;
             }
 
+            // Handle single line comment end
             if (in_single_line_comment) {
-                if (processed[i] == '\n') {
+                if (current == '\n') {
                     in_single_line_comment = false;
                     ss << '\n';
                 }
+                prev_char = current;
                 continue;
             }
-
-            ss << processed[i];
         }
 
-        processed = ss.str();
+        ss << current;
+        prev_char = current;
     }
 
-    return processed;
+    return ss.str();
 }
 
 std::vector<std::string> CodeAnalyzer::extract_insights(const std::string& description) {
