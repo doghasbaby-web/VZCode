@@ -1,0 +1,3 @@
+[submodule "third_party/vizzu-lib"]
+	path = third_party/vizzu-lib
+	url = https://github.com/vizzuhq/vizzu-lib.git

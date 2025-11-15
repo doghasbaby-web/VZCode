@@ -7,6 +7,7 @@
 #include "../parser/mermaid_parser.hpp"
 #include "../parser/vizzu_converter.hpp"
 #include "../vizzu/animation_wrapper.hpp"
+#include "../vizzu/vizzu_kernel_wrapper.hpp"
 #include <memory>
 #include <string>
 
@@ -190,6 +191,73 @@ public:
         return "1.0.0";
     }
 
+    // Get Vizzu kernel version (if available)
+    std::string getVizzuKernelVersion() const {
+#ifdef VIZZU_KERNEL_AVAILABLE
+        vizzu::VizzuKernelWrapper kernel;
+        return kernel.get_version();
+#else
+        return "not-available";
+#endif
+    }
+
+    // Check if Vizzu kernel is available
+    bool isVizzuKernelAvailable() const {
+#ifdef VIZZU_KERNEL_AVAILABLE
+        return true;
+#else
+        return false;
+#endif
+    }
+
+    // Initialize and render using C++ kernel directly (returns status)
+    std::string renderWithKernel(const std::string& mermaid_text,
+                                 int width,
+                                 int height) {
+#ifdef VIZZU_KERNEL_AVAILABLE
+        try {
+            // Parse Mermaid
+            parser::MermaidParser parser;
+            auto diagram = parser.parse(mermaid_text);
+
+            // Convert to Vizzu
+            parser::VizzuConverter converter;
+            auto vizzu_data = converter.convert(diagram);
+
+            // Initialize Vizzu integration
+            vizzu::VizzuIntegration vizzu_integration;
+            vizzu::ChartConfig config;
+            config.width = width;
+            config.height = height;
+
+            if (!vizzu_integration.initialize(vizzu_data, config)) {
+                return "{\"success\": false, \"error\": \"Failed to initialize Vizzu kernel\"}";
+            }
+
+            // Render using kernel
+            if (!vizzu_integration.render_with_kernel(width, height)) {
+                return "{\"success\": false, \"error\": \"Failed to render with kernel\"}";
+            }
+
+            utils::JsonValue response = utils::JsonValue::object();
+            response["success"] = utils::JsonValue(true);
+            response["message"] = utils::JsonValue("Rendered using Vizzu C++ kernel");
+
+            return response.stringify();
+        } catch (const std::exception& e) {
+            utils::JsonValue response = utils::JsonValue::object();
+            response["success"] = utils::JsonValue(false);
+            response["error"] = utils::JsonValue(e.what());
+            return response.stringify();
+        }
+#else
+        utils::JsonValue response = utils::JsonValue::object();
+        response["success"] = utils::JsonValue(false);
+        response["error"] = utils::JsonValue("Vizzu kernel not available");
+        return response.stringify();
+#endif
+    }
+
 private:
     std::string api_key_;
     bool api_key_set_;
@@ -207,7 +275,10 @@ EMSCRIPTEN_BINDINGS(vzcode_module) {
         .function("parseMermaid", &VZCodeAPI::parseMermaid)
         .function("mermaidToVizzu", &VZCodeAPI::mermaidToVizzu)
         .function("generateVisualization", &VZCodeAPI::generateVisualization)
-        .function("getVersion", &VZCodeAPI::getVersion);
+        .function("getVersion", &VZCodeAPI::getVersion)
+        .function("getVizzuKernelVersion", &VZCodeAPI::getVizzuKernelVersion)
+        .function("isVizzuKernelAvailable", &VZCodeAPI::isVizzuKernelAvailable)
+        .function("renderWithKernel", &VZCodeAPI::renderWithKernel);
 }
 
 #endif

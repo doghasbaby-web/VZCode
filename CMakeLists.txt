@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Options
 option(BUILD_WASM "Build for WebAssembly" ON)
 option(BUILD_TESTS "Build tests" OFF)
+option(ENABLE_VIZZU_KERNEL "Enable Vizzu C++ kernel integration" ON)
 
 # Set output directories
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -19,6 +20,35 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/third_party
 )
 
+# Vizzu library integration
+if(ENABLE_VIZZU_KERNEL)
+    message(STATUS "Vizzu C++ kernel integration enabled")
+    add_definitions(-DVIZZU_KERNEL_AVAILABLE)
+
+    # Include Vizzu library headers
+    include_directories(
+        ${CMAKE_SOURCE_DIR}/third_party/vizzu-lib/src
+        ${CMAKE_SOURCE_DIR}/third_party/vizzu-lib/src/apps/weblib
+    )
+
+    # Collect Vizzu library source files
+    file(GLOB_RECURSE VIZZU_SOURCES
+        ${CMAKE_SOURCE_DIR}/third_party/vizzu-lib/src/base/*.cpp
+        ${CMAKE_SOURCE_DIR}/third_party/vizzu-lib/src/chart/*.cpp
+        ${CMAKE_SOURCE_DIR}/third_party/vizzu-lib/src/dataframe/*.cpp
+    )
+
+    # Add Vizzu weblib sources
+    list(APPEND VIZZU_SOURCES
+        ${CMAKE_SOURCE_DIR}/third_party/vizzu-lib/src/apps/weblib/interface.cpp
+        ${CMAKE_SOURCE_DIR}/third_party/vizzu-lib/src/apps/weblib/cinterface.cpp
+        ${CMAKE_SOURCE_DIR}/third_party/vizzu-lib/src/apps/weblib/jscriptcanvas.cpp
+    )
+
+    list(LENGTH VIZZU_SOURCES VIZZU_SOURCE_COUNT)
+    message(STATUS "Found ${VIZZU_SOURCE_COUNT} Vizzu source files")
+endif()
+
 # Source files
 set(SOURCES
     src/core/code_analyzer.cpp
@@ -27,9 +57,15 @@ set(SOURCES
     src/parser/vizzu_converter.cpp
     src/vizzu/animation_wrapper.cpp
     src/vizzu/vizzu_integration.cpp
+    src/vizzu/vizzu_kernel_wrapper.cpp
     src/utils/json_utils.cpp
     src/utils/http_client.cpp
 )
+
+# Add Vizzu sources if kernel is enabled
+if(ENABLE_VIZZU_KERNEL)
+    list(APPEND SOURCES ${VIZZU_SOURCES})
+endif()
 
 # WASM-specific settings
 if(BUILD_WASM)
