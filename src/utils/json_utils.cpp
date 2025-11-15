@@ -300,17 +300,65 @@ JsonValue JsonValue::parse_string(const std::string& str, size_t& pos) {
 
 JsonValue JsonValue::parse_number(const std::string& str, size_t& pos) {
     size_t start = pos;
+    bool has_decimal = false;
+    bool has_exponent = false;
 
+    // Optional negative sign
     if (str[pos] == '-') ++pos;
 
-    while (pos < str.length() && (std::isdigit(str[pos]) || str[pos] == '.' || str[pos] == 'e' || str[pos] == 'E' || str[pos] == '+' || str[pos] == '-')) {
+    // Integer part (at least one digit required before decimal or exponent)
+    if (pos >= str.length() || !std::isdigit(str[pos])) {
+        throw std::runtime_error("Invalid number: expected digit");
+    }
+
+    // Parse integer digits
+    while (pos < str.length() && std::isdigit(str[pos])) {
         ++pos;
     }
 
-    std::string num_str = str.substr(start, pos - start);
-    double value = std::stod(num_str);
+    // Optional decimal part
+    if (pos < str.length() && str[pos] == '.') {
+        has_decimal = true;
+        ++pos;
 
-    return JsonValue(value);
+        // At least one digit required after decimal point
+        if (pos >= str.length() || !std::isdigit(str[pos])) {
+            throw std::runtime_error("Invalid number: expected digit after decimal point");
+        }
+
+        while (pos < str.length() && std::isdigit(str[pos])) {
+            ++pos;
+        }
+    }
+
+    // Optional exponent part
+    if (pos < str.length() && (str[pos] == 'e' || str[pos] == 'E')) {
+        has_exponent = true;
+        ++pos;
+
+        // Optional sign in exponent
+        if (pos < str.length() && (str[pos] == '+' || str[pos] == '-')) {
+            ++pos;
+        }
+
+        // At least one digit required in exponent
+        if (pos >= str.length() || !std::isdigit(str[pos])) {
+            throw std::runtime_error("Invalid number: expected digit in exponent");
+        }
+
+        while (pos < str.length() && std::isdigit(str[pos])) {
+            ++pos;
+        }
+    }
+
+    std::string num_str = str.substr(start, pos - start);
+
+    try {
+        double value = std::stod(num_str);
+        return JsonValue(value);
+    } catch (const std::exception& e) {
+        throw std::runtime_error(std::string("Invalid number format: ") + e.what());
+    }
 }
 
 } // namespace utils

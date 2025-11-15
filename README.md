@@ -236,6 +236,42 @@ export GEMINI_API_KEY="your-api-key-here"
 - CMake 3.15+ - Build system
 - C++17 compiler
 
+## 🧪 Testing
+
+VZCode now includes a comprehensive test suite with 155+ tests using Google Test framework.
+
+### Running Tests
+
+```bash
+# Build with tests enabled (native build)
+mkdir build && cd build
+cmake -DBUILD_WASM=OFF -DBUILD_TESTS=ON -DENABLE_VIZZU_KERNEL=OFF ..
+make
+
+# Run all tests
+ctest
+
+# Or run with verbose output
+ctest --verbose
+
+# Run specific test suite
+./bin/test_json_utils
+./bin/test_mermaid_parser
+./bin/test_vizzu_converter
+./bin/test_code_analyzer
+./bin/test_integration
+```
+
+### Test Coverage
+
+- **test_json_utils.cpp** (60+ tests): JSON parsing, serialization, validation
+- **test_mermaid_parser.cpp** (35+ tests): Mermaid diagram parsing and validation
+- **test_vizzu_converter.cpp** (20+ tests): Mermaid to Vizzu conversion
+- **test_code_analyzer.cpp** (25+ tests): Code preprocessing and analysis
+- **test_integration.cpp** (15+ tests): End-to-end integration tests
+
+See [tests/README.md](tests/README.md) for detailed testing documentation.
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit issues and pull requests.
